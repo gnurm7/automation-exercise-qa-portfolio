@@ -22,3 +22,9 @@ Reports are generated at `artifacts/api/newman.xml` and `artifacts/api/summary.j
 The initial run passed checkout, order confirmation and invoice download. Test failures involved the H&M fixture, spacing in storefront labels and advertising text inserted inside labels. The intermediate run encountered one culture-dependent heading comparison and one queue-full response from the public site. See [OBS-001](../bug-reports/OBS-001-public-site-delivery.md) for the screenshot and environment details.
 
 The manual test log remains Not Run.
+
+## Hosted CI
+
+The [GitHub Actions run](https://github.com/gnurm7/automation-exercise-qa-portfolio/actions/runs/44606954165) built the .NET project and passed all four headless Chrome smoke tests. The `selenium-chrome` artifact contains the UI reports.
+
+The Newman job received HTTP 200 with HTML bodies for all 17 API requests. The JSON application assertions could not be evaluated from that runner. The job reported failure and uploaded its `newman` artifact. The local run above verified the documented contract using JSON responses.
