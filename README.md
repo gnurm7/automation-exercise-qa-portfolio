@@ -79,7 +79,7 @@ Import both JSON files in Postman and run the full collection in order. Newman s
 
 ## CI/CD
 
-Pushes to main and pull requests run headless Chrome smoke coverage and the Newman collection in separate jobs. Run the **QA checks** workflow manually for full UI regression with Chrome or Firefox. Download NUnit XML, TRX, failure screenshots and Newman reports from the workflow's artifact list.
+Pushes to main and pull requests run headless Chrome smoke coverage and the Newman collection in separate jobs. Run the **QA checks** workflow manually for full UI regression with Chrome or Firefox. Download NUnit XML, TRX, failure screenshots and API reports from the workflow artifact list. The API preflight records confirmed access challenges or capacity blocks as Blocked and skips the live Newman step. Unexpected responses and Newman assertion failures fail the API job.
 
 ## Test Execution Results
 

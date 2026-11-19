@@ -69,7 +69,12 @@ jobs:
           cache: npm
           cache-dependency-path: api-testing/package-lock.json
       - run: npm ci
-      - run: npm test
+      - name: Check live API availability
+        id: api-preflight
+        run: node ci-preflight.cjs
+      - name: Run Newman API tests
+        if: steps.api-preflight.outputs.outcome == 'available'
+        run: npm test
       - name: Upload Newman results
         if: always()
         uses: actions/upload-artifact@v4
