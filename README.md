@@ -32,3 +32,7 @@ Use synthetic account and address data and a unique test email. For the practice
 Start with EC-01 through EC-04. Keep the product name, displayed unit price and selected quantity in the session record so subsequent cart and checkout checks can use the same data.
 
 API checks will compare the documented application response code and message with the HTTP status actually returned. The public API covers catalogue, search and account operations. Cart and checkout consistency will be checked through the browser. Data checks use the public interface and documented API responses.
+
+## Portfolio roadmap
+
+The [roadmap](roadmap.md) defines the next testing session and the completion criteria for UI, API and CI work.
