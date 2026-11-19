@@ -1,0 +1,838 @@
+{
+ "info": {
+  "name": "Automation Exercise REST API",
+  "description": "Run in order to create and clean up the synthetic account.",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "variable": [
+  {
+   "key": "email",
+   "value": ""
+  },
+  {
+   "key": "password",
+   "value": ""
+  }
+ ],
+ "item": [
+  {
+   "name": "Catalogue and request validation",
+   "item": [
+    {
+     "name": "API-01 Retrieve catalogue",
+     "request": {
+      "method": "GET",
+      "url": {
+       "raw": "{{baseUrl}}/api/productsList",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "productsList"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Products have numeric IDs and catalogue fields\", () => { pm.expect(body.products).to.be.an(\"array\").that.is.not.empty;",
+         "for (const row of body.products) {",
+         "    pm.expect(row.id).to.be.a(\"number\");",
+         "    pm.expect(row.name).to.be.a(\"string\").that.is.not.empty;",
+         "    pm.expect(row.price).to.match(/^Rs\\. \\d+(?:\\.\\d+)?$/);",
+         "    pm.expect(row.brand).to.be.a(\"string\");",
+         "    pm.expect(row.category.category).to.be.a(\"string\");",
+         "    pm.expect(row.category.usertype.usertype).to.be.a(\"string\");",
+         "} });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-02 Reject catalogue POST",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/productsList",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "productsList"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 405\", () => { pm.expect(body.responseCode).to.eql(405); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"This request method is not supported.\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-03 Retrieve brands",
+     "request": {
+      "method": "GET",
+      "url": {
+       "raw": "{{baseUrl}}/api/brandsList",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "brandsList"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Brands have numeric IDs and names\", () => { pm.expect(body.brands).to.be.an(\"array\").that.is.not.empty;",
+         "for (const brand of body.brands) {",
+         "    pm.expect(brand.id).to.be.a(\"number\");",
+         "    pm.expect(brand.brand).to.be.a(\"string\").that.is.not.empty;",
+         "} });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-04 Reject brands PUT",
+     "request": {
+      "method": "PUT",
+      "url": {
+       "raw": "{{baseUrl}}/api/brandsList",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "brandsList"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 405\", () => { pm.expect(body.responseCode).to.eql(405); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"This request method is not supported.\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-05 Search catalogue",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/searchProduct",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "searchProduct"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "search_product",
+         "value": "blue top",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Products have numeric IDs and catalogue fields\", () => { pm.expect(body.products).to.be.an(\"array\").that.is.not.empty;",
+         "for (const row of body.products) {",
+         "    pm.expect(row.id).to.be.a(\"number\");",
+         "    pm.expect(row.name).to.be.a(\"string\").that.is.not.empty;",
+         "    pm.expect(row.price).to.match(/^Rs\\. \\d+(?:\\.\\d+)?$/);",
+         "    pm.expect(row.brand).to.be.a(\"string\");",
+         "    pm.expect(row.category.category).to.be.a(\"string\");",
+         "    pm.expect(row.category.usertype.usertype).to.be.a(\"string\");",
+         "} });",
+         "pm.test(\"Search finds Blue Top\", () => { pm.expect(body.products.map(row => row.name)).to.include(\"Blue Top\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-06 Reject search without term",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/searchProduct",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "searchProduct"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 400\", () => { pm.expect(body.responseCode).to.eql(400); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"Bad request, search_product parameter is missing in POST request.\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-08 Reject login without email",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/verifyLogin",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "verifyLogin"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "password",
+         "value": "synthetic-password",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 400\", () => { pm.expect(body.responseCode).to.eql(400); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"Bad request, email or password parameter is missing in POST request.\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-15 Reject login without password",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/verifyLogin",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "verifyLogin"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "missing-password@example.com",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 400\", () => { pm.expect(body.responseCode).to.eql(400); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"Bad request, email or password parameter is missing in POST request.\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-09 Reject login DELETE",
+     "request": {
+      "method": "DELETE",
+      "url": {
+       "raw": "{{baseUrl}}/api/verifyLogin",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "verifyLogin"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 405\", () => { pm.expect(body.responseCode).to.eql(405); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"This request method is not supported.\"); });"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Synthetic account lifecycle",
+   "item": [
+    {
+     "name": "API-11 Create synthetic account",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/createAccount",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "createAccount"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "{{email}}",
+         "type": "text"
+        },
+        {
+         "key": "password",
+         "value": "{{password}}",
+         "type": "text"
+        },
+        {
+         "key": "name",
+         "value": "Demo Tester",
+         "type": "text"
+        },
+        {
+         "key": "title",
+         "value": "Mr",
+         "type": "text"
+        },
+        {
+         "key": "birth_date",
+         "value": "15",
+         "type": "text"
+        },
+        {
+         "key": "birth_month",
+         "value": "6",
+         "type": "text"
+        },
+        {
+         "key": "birth_year",
+         "value": "1992",
+         "type": "text"
+        },
+        {
+         "key": "firstname",
+         "value": "Demo",
+         "type": "text"
+        },
+        {
+         "key": "lastname",
+         "value": "Tester",
+         "type": "text"
+        },
+        {
+         "key": "company",
+         "value": "Example QA",
+         "type": "text"
+        },
+        {
+         "key": "address1",
+         "value": "123 Demo Avenue",
+         "type": "text"
+        },
+        {
+         "key": "address2",
+         "value": "Suite 2",
+         "type": "text"
+        },
+        {
+         "key": "country",
+         "value": "Canada",
+         "type": "text"
+        },
+        {
+         "key": "zipcode",
+         "value": "A1A 1A1",
+         "type": "text"
+        },
+        {
+         "key": "state",
+         "value": "Ontario",
+         "type": "text"
+        },
+        {
+         "key": "city",
+         "value": "Toronto",
+         "type": "text"
+        },
+        {
+         "key": "mobile_number",
+         "value": "4165550100",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "prerequest",
+       "script": {
+        "exec": [
+         "const id = pm.variables.replaceIn(\"{{$guid}}\");",
+         "pm.collectionVariables.set(\"email\", \"ae-\" + id + \"@example.com\");",
+         "pm.collectionVariables.set(\"password\", \"Demo-\" + id + \"!\");"
+        ]
+       }
+      },
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 201\", () => { pm.expect(body.responseCode).to.eql(201); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"User created!\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-07 Verify valid credentials",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/verifyLogin",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "verifyLogin"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "{{email}}",
+         "type": "text"
+        },
+        {
+         "key": "password",
+         "value": "{{password}}",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"User exists!\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-10 Reject incorrect password",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/verifyLogin",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "verifyLogin"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "{{email}}",
+         "type": "text"
+        },
+        {
+         "key": "password",
+         "value": "{{password}}-wrong",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 404\", () => { pm.expect(body.responseCode).to.eql(404); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"User not found!\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-14 Retrieve account",
+     "request": {
+      "method": "GET",
+      "url": {
+       "raw": "{{baseUrl}}/api/getUserDetailByEmail?email={{email}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "getUserDetailByEmail"
+       ],
+       "query": [
+        {
+         "key": "email",
+         "value": "{{email}}"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Account identity and submitted address match\", () => { pm.expect(body.user.email).to.eql(pm.collectionVariables.get(\"email\"));",
+         "pm.expect(body.user.name).to.eql(\"Demo Tester\");",
+         "pm.expect(body.user.address1).to.eql(\"123 Demo Avenue\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-13 Update account address",
+     "request": {
+      "method": "PUT",
+      "url": {
+       "raw": "{{baseUrl}}/api/updateAccount",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "updateAccount"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "{{email}}",
+         "type": "text"
+        },
+        {
+         "key": "password",
+         "value": "{{password}}",
+         "type": "text"
+        },
+        {
+         "key": "name",
+         "value": "Demo Tester",
+         "type": "text"
+        },
+        {
+         "key": "title",
+         "value": "Mr",
+         "type": "text"
+        },
+        {
+         "key": "birth_date",
+         "value": "15",
+         "type": "text"
+        },
+        {
+         "key": "birth_month",
+         "value": "6",
+         "type": "text"
+        },
+        {
+         "key": "birth_year",
+         "value": "1992",
+         "type": "text"
+        },
+        {
+         "key": "firstname",
+         "value": "Demo",
+         "type": "text"
+        },
+        {
+         "key": "lastname",
+         "value": "Tester",
+         "type": "text"
+        },
+        {
+         "key": "company",
+         "value": "Example QA",
+         "type": "text"
+        },
+        {
+         "key": "address1",
+         "value": "456 Demo Avenue",
+         "type": "text"
+        },
+        {
+         "key": "address2",
+         "value": "Suite 2",
+         "type": "text"
+        },
+        {
+         "key": "country",
+         "value": "Canada",
+         "type": "text"
+        },
+        {
+         "key": "zipcode",
+         "value": "A1A 1A1",
+         "type": "text"
+        },
+        {
+         "key": "state",
+         "value": "Ontario",
+         "type": "text"
+        },
+        {
+         "key": "city",
+         "value": "Toronto",
+         "type": "text"
+        },
+        {
+         "key": "mobile_number",
+         "value": "4165550100",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"User updated!\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-16 Retrieve persisted address update",
+     "request": {
+      "method": "GET",
+      "url": {
+       "raw": "{{baseUrl}}/api/getUserDetailByEmail?email={{email}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "getUserDetailByEmail"
+       ],
+       "query": [
+        {
+         "key": "email",
+         "value": "{{email}}"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Updated address belongs to the same user\", () => { pm.expect(body.user.email).to.eql(pm.collectionVariables.get(\"email\"));",
+         "pm.expect(body.user.address1).to.eql(\"456 Demo Avenue\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-12 Delete synthetic account",
+     "request": {
+      "method": "DELETE",
+      "url": {
+       "raw": "{{baseUrl}}/api/deleteAccount",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "deleteAccount"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "{{email}}",
+         "type": "text"
+        },
+        {
+         "key": "password",
+         "value": "{{password}}",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 200\", () => { pm.expect(body.responseCode).to.eql(200); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"Account deleted!\"); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "API-17 Verify deleted credentials fail",
+     "request": {
+      "method": "POST",
+      "url": {
+       "raw": "{{baseUrl}}/api/verifyLogin",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "api",
+        "verifyLogin"
+       ]
+      },
+      "body": {
+       "mode": "urlencoded",
+       "urlencoded": [
+        {
+         "key": "email",
+         "value": "{{email}}",
+         "type": "text"
+        },
+        {
+         "key": "password",
+         "value": "{{password}}",
+         "type": "text"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "exec": [
+         "pm.test(\"HTTP status is 200\", () => { pm.response.to.have.status(200); });",
+         "const body = pm.response.json();",
+         "pm.test(\"Application responseCode is 404\", () => { pm.expect(body.responseCode).to.eql(404); });",
+         "pm.test(\"Application message matches contract\", () => { pm.expect(body.message).to.eql(\"User not found!\"); });"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

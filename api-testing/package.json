@@ -1,0 +1,6 @@
+{
+  "name": "automation-exercise-api-tests",
+  "private": true,
+  "scripts": { "test": "node run-newman.cjs" },
+  "devDependencies": { "newman": "6.2.3" }
+}

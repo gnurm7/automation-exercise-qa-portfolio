@@ -1,38 +1,94 @@
-# E-commerce QA study — Automation Exercise
+# Automation Exercise software testing
 
-**Gülsüm Nur Maslak · QA portfolio**
+**Gülsüm Nur Maslak**
 
-This study follows customer journeys across registration, login, product discovery, product details, cart, checkout and order confirmation. It focuses on data consistency between pages, session state, quantity calculations and recovery from invalid input.
+## Project Overview
 
-## Application and test basis
+This project tests the Automation Exercise storefront using risk-based manual scenarios, C# browser automation and Postman API checks. It follows the customer journey from product discovery through checkout and reconciles observable data across the browser and REST API.
 
-Automation Exercise provides an e-commerce practice website, published UI scenarios and API documentation. Reviewed on 2026-11-12.
+## Application Under Test
 
-- [Application](https://automationexercise.com/)
-- [Published UI scenarios](https://automationexercise.com/test_cases)
-- [API reference](https://automationexercise.com/api_list)
+[Automation Exercise](https://automationexercise.com/) is a public practice storefront. The [published UI scenarios](https://automationexercise.com/test_cases) and [API reference](https://automationexercise.com/api_list) provide the baseline.
 
-## Priorities
+## Testing Objectives
 
-| Priority | Risk | Investigation |
-|---|---|---|
-| High | Incorrect product, quantity or total at checkout | Compare product detail, cart and order review values |
-| High | Cart lost during authentication | Build a guest cart, sign in and compare its contents |
-| High | Session state inconsistent after logout | Check navigation, refresh and a second browser session |
-| Medium | Search and category navigation hide expected products | Compare results with the catalogue and search API |
-| Medium | Invalid input prevents recovery | Check error messages, retained input and successful retry |
-| Medium | Small screens or keyboard navigation block checkout | Follow the complete journey at a narrow viewport and with the keyboard |
+Verify that the cart preserves product identity, quantity and pricing through sign-in and checkout. Check that account validation supports recovery and that authentication and cart state behave predictably across sessions. Detect API contract changes and compare product name, category and price across layers.
 
-Use synthetic account and address data and a unique test email. For the practice payment form, use synthetic values. Record browser version, viewport, execution time and exact inputs. Create observations while testing and assign a result after checking the expected outcome.
+## Test Scope
 
-## Execution
+Scope includes signup, duplicate email, login, logout, discovery and filters, cart arithmetic, checkout, synthetic payment, invoices and documented REST behavior. Manual sessions cover keyboard access, narrow screens and ambiguous input boundaries.
 
-[Scenario matrix](test-cases.md) contains 20 planned checks. [Session record](session-record.md) holds actual observations and a defect template. Execution is pending.
+## Technology Stack
 
-Start with EC-01 through EC-04. Keep the product name, displayed unit price and selected quantity in the session record so subsequent cart and checkout checks can use the same data.
+C# on .NET 10 LTS, Selenium WebDriver with Selenium Manager, NUnit with native XML and TRX reports, Postman Collection v2.1, Newman with JUnit XML, and GitHub Actions.
 
-API checks will compare the documented application response code and message with the HTTP status actually returned. The public API covers catalogue, search and account operations. Cart and checkout consistency will be checked through the browser. Data checks use the public interface and documented API responses.
+## Test Automation Architecture
 
-## Portfolio roadmap
+Each NUnit case starts a fresh Chrome or Firefox session. Page objects encapsulate selectors and explicit waits. The reusable header component models authenticated navigation. Account tests create unique synthetic data, clean up through the documented API and save an attached screenshot on failure. The Newman account lifecycle keeps its generated credentials inside collection scope and deletes the fixture before verifying the post-delete state.
 
-The [roadmap](roadmap.md) defines the next testing session and the completion criteria for UI, API and CI work.
+## Test Design Techniques
+
+The [test plan](manual-testing/test-plan.md) explains boundary value analysis, equivalence partitioning, decision tables, state transitions, risk prioritization and exploratory testing. The [traceability matrix](manual-testing/traceability-matrix.md) maps the manual catalogue to the automated suite.
+
+## Test Coverage
+
+| Layer | Implemented coverage |
+| --- | --- |
+| Manual | 23 designed cases, including the original EC-01 through EC-20 |
+| Selenium | 32 implemented cases including parameterized variants across catalogue, cart, account and checkout |
+| Newman | 17 requests across the full published API case set and three additional lifecycle or validation checks |
+
+## Project Structure
+
+- `tests/` contains the browser factory and fixture lifecycle, pages, components, test data and NUnit fixtures.
+- `manual-testing/` contains the test plan, case catalogue, manual execution log, exploratory charters and traceability.
+- `api-testing/` contains the Postman collection and environment, Newman runner and npm lockfile.
+- `bug-reports/` contains defect criteria and the reporting template.
+- `evidence/` indexes execution results. CI keeps generated reports as workflow artifacts.
+
+## Installation
+
+Install .NET 10 SDK, Node.js 22 and Chrome or Firefox. Selenium Manager resolves the compatible WebDriver when the browser launches.
+
+```sh
+dotnet restore AutomationExercise.slnx
+dotnet build AutomationExercise.slnx --no-restore
+cd api-testing
+npm ci
+cd ..
+```
+
+## Running UI Tests
+
+```sh
+dotnet test AutomationExercise.slnx --filter "TestCategory=Smoke"
+dotnet test AutomationExercise.slnx --filter "TestCategory=Regression"
+dotnet test AutomationExercise.slnx --filter "TestCategory=E2E"
+```
+
+Set `QA_BROWSER=firefox` to use Firefox. Set `QA_HEADED=1` for a visible window. PowerShell syntax is `$env:QA_BROWSER = "firefox"`. Set `QA_ARTIFACTS` to an absolute path for failure screenshots. To generate reports, pass `--logger "trx;LogFileName=ui.trx" --results-directory artifacts/ui -- NUnit.TestOutputXml=artifacts/ui`.
+
+## Running API Tests
+
+```sh
+cd api-testing
+npm test
+```
+
+Import both JSON files in Postman and run the full collection in order. Newman saves the JUnit XML and counters under `artifacts/api/`. Each request asserts the HTTP transport status and the JSON `responseCode` separately.
+
+## CI/CD
+
+Pushes to main and pull requests run headless Chrome smoke coverage and the Newman collection in separate jobs. Run the **QA checks** workflow manually for full UI regression with Chrome or Firefox. Download NUnit XML, TRX, failure screenshots and Newman reports from the workflow's artifact list.
+
+## Test Execution Results
+
+The [evidence index](evidence/README.md) records executed results. The [manual execution log](manual-testing/test-execution.md) records the manual status independently.
+
+## Defects and Observations
+
+See [defect triage and reporting](bug-reports/README.md) for confirmed defects, observations and product questions.
+
+## Known Limitations
+
+The suite depends on a shared public test environment. Inspect test output and screenshots for CAPTCHA, advertising overlays, rate limits and network failures. If a challenge blocks execution, record the environment and affected cases. The public interfaces provide the available validation surface. Practice payments use synthetic values.

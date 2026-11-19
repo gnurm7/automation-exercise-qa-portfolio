@@ -1,0 +1,79 @@
+name: QA checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: Browser for the full UI regression suite
+        type: choice
+        options: [chrome, firefox]
+        default: chrome
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ui:
+    needs: api
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      QA_BROWSER: ${{ inputs.browser || 'chrome' }}
+      QA_ARTIFACTS: ${{ github.workspace }}/artifacts/ui/screenshots
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore AutomationExercise.slnx
+      - run: dotnet build AutomationExercise.slnx --no-restore --configuration Release
+      - name: Run headless UI tests
+        shell: bash
+        run: |
+          filter='TestCategory=Smoke'
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            filter='TestCategory=Regression'
+          fi
+          dotnet test AutomationExercise.slnx --no-build --configuration Release \
+            --filter "$filter" \
+            --results-directory "$GITHUB_WORKSPACE/artifacts/ui" \
+            --logger 'trx;LogFileName=ui.trx' \
+            -- NUnit.TestOutputXml="$GITHUB_WORKSPACE/artifacts/ui"
+      - name: Upload UI reports and failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-${{ env.QA_BROWSER }}
+          path: artifacts/ui
+          if-no-files-found: warn
+
+  api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: api-testing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api-testing/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - name: Upload Newman results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman
+          path: artifacts/api
+          if-no-files-found: warn
